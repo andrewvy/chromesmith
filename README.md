@@ -1,4 +1,6 @@
-# [WIP] chromesmith
+# chromesmith
+
+:construction: [WIP]
 
 Higher-level library for forging distributing workloads across an army of headless chrome workers.
 
