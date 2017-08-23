@@ -20,10 +20,16 @@ defmodule Chromesmith do
   """
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
-      import Supervisor
+      def child_spec(opts) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, [opts]},
+          type: :supervisor
+        }
+      end
 
-      def start_link() do
-        Chromesmith.Supervisor.start_link(__MODULE__)
+      def start_link(opts \\ []) do
+        Chromesmith.Supervisor.start_link(__MODULE__, opts)
       end
 
       def config() do

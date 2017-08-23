@@ -6,8 +6,8 @@ defmodule Chromesmith.Supervisor do
     number_of_pages_per_process: 16
   ]
 
-  def start_link(module) do
-    Supervisor.start_link(__MODULE__, module)
+  def start_link(module, opts) do
+    Supervisor.start_link(__MODULE__, {module, opts})
   end
 
   def runtime_config(module, config) do
@@ -21,7 +21,7 @@ defmodule Chromesmith.Supervisor do
     end
   end
 
-  def init(module) do
+  def init({module, _opts}) do
     opts = runtime_config(module, [])
 
     children =
