@@ -5,7 +5,7 @@
 Higher-level library for forging distributing workloads across an army of headless chrome workers.
 
 Provides a higher-level DSL on top of [chrome-remote-interface](https://github.com/andrewvy/chrome-remote-interface),
-and manages headless chrome processes with [chrome-launcher](https://github.com/andrewvy/chrome-launcher) to manage headless chrome instances.
+and manages headless chrome processes with [chrome-launcher](https://github.com/andrewvy/chrome-launcher).
 
 ---
 
