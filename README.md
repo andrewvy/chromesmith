@@ -4,8 +4,8 @@
 
 Higher-level library for forging distributing workloads across an army of headless chrome workers.
 
-Utilizes the Chrome Debugger Protocol with [chrome-remote-interface](https://github.com/andrewvy/chrome-remote-interface) to
-manage headless chrome instances.
+Provides a higher-level DSL on top of [chrome-remote-interface](https://github.com/andrewvy/chrome-remote-interface),
+and manages headless chrome processes with [chrome-launcher](https://github.com/andrewvy/chrome-launcher) to manage headless chrome instances.
 
 ---
 
@@ -15,30 +15,21 @@ manage headless chrome instances.
 the default configuration. It's highly recommended you tune your configuration to your runtime environment to
 make best use of your resources.
 
-> Create a new module for *chromesmith*:
-
-```elixir
-defmodule MyApp.Chromesmith do
-  use Chromesmith
-end
-```
-
-> Add that module to your application supervision tree.
+> Add Chromesmith to your application supervision tree.
 
 ```
-# Add example here
-```
+defmodule MyApp.Application do
+  @moduledoc false
 
-> Provide runtime configuration using the `init/1` callback.
+  use Application
 
-```elixir
-defmodule MyApp.Chromesmith do
-  use Chromesmith
+  def start(_type, _args) do
+    children = [
+      Chromesmith.child_spec(:chrome_pool, [process_pool_size: 2])
+    ]
 
-  def init(config) do
-    Keyword.merge(config, [
-      pool_size: 50
-    ])
+    opts = [strategy: :one_for_one, name: ChromesmithExample.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 end
 ```
