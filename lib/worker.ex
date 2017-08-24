@@ -1,8 +1,8 @@
 defmodule Chromesmith.Worker do
   use GenServer
 
-  def start_link({index, opts}) do
-    GenServer.start_link(__MODULE__, {index, opts})
+  def start_link({index, chrome_opts}) do
+    GenServer.start_link(__MODULE__, {index, chrome_opts})
   end
 
   def init({index, _opts}) do
