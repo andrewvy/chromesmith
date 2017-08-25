@@ -17,7 +17,11 @@ make best use of your resources.
 
 > Add Chromesmith to your application supervision tree.
 
-```
+Use `Chromesmith.child_spec/2` to create the child specification to be put in your application's supervisor.
+
+See [here](#) for configuration options.
+
+```elixir
 defmodule MyApp.Application do
   @moduledoc false
 

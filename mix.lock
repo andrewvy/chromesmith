@@ -1,5 +1,5 @@
 %{"certifi": {:hex, :certifi, "2.0.0", "a0c0e475107135f76b8c1d5bc7efb33cd3815cb3cf3dea7aefdd174dabead064", [:rebar3], []},
-  "chrome_launcher": {:git, "https://github.com/andrewvy/chrome-launcher.git", "75b07be5a6054886c45065da62d94975b69f0467", []},
+  "chrome_launcher": {:git, "https://github.com/andrewvy/chrome-launcher.git", "ca41b01414ce5afdaad0a68b4e4aa76501ff83d8", []},
   "chrome_remote_interface": {:git, "https://github.com/andrewvy/chrome-remote-interface.git", "e67bc44f228c6bec92b4e9a56d13b730b7b27df0", []},
   "erlexec": {:hex, :erlexec, "1.7.1", "6ddbd40fa202084ed0bdaf95a50c334acaa5644ae213b903cd4094a78ae79734", [:rebar3], []},
   "hackney": {:hex, :hackney, "1.9.0", "51c506afc0a365868469dcfc79a9d0b94d896ec741cfd5bd338f49a5ec515bfe", [:rebar3], [{:certifi, "2.0.0", [hex: :certifi, optional: false]}, {:idna, "5.1.0", [hex: :idna, optional: false]}, {:metrics, "1.0.1", [hex: :metrics, optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, optional: false]}, {:ssl_verify_fun, "1.1.1", [hex: :ssl_verify_fun, optional: false]}]},
