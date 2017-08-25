@@ -1,6 +1,27 @@
 defmodule Chromesmith do
   @moduledoc """
   Main module for Chromesmith.
+
+  > Add Chromesmith to your application supervision tree:
+
+      defmodule ChromesmithExample.Application do
+        use Application
+
+        def start(_type, _args) do
+          children = [
+            Chromesmith.child_spec(:chrome_pool, [process_pool_size: 2, page_pool_size: 1])
+          ]
+
+          opts = [strategy: :one_for_one, name: ChromesmithExample.Supervisor]
+          Supervisor.start_link(children, opts)
+        end
+      end
+
+  Using `Chromesmith.child_spec/2`, you can provide multiple options to configure the pool:
+
+  * `:process_pool_size` - How many Chrome instances to open
+  * `:page_pool_size` - How many pages to open per chrome instance
+  * `:chrome_options` - Additional chrome headless CLI flags to pass on startup.
   """
   use GenServer
 
