@@ -21,7 +21,6 @@ defmodule Chromesmith do
 
   * `:process_pool_size` - How many Chrome instances to open
   * `:page_pool_size` - How many pages to open per chrome instance
-  * `:chrome_options` - Additional chrome headless CLI flags to pass on startup.
   """
   use GenServer
 
@@ -30,7 +29,6 @@ defmodule Chromesmith do
     process_pool_size: 0, # How many Headless Chrome instances to spawn
     page_pool_size: 0, # How many Pages per Instance
     process_pools: [], # List of process pool tuples, {pid, available_pids, all_pids}
-    chrome_options: [], # Options to pass into `:chrome_launcher`
     checkout_queue: :queue.new()
   ]
 
@@ -39,7 +37,6 @@ defmodule Chromesmith do
     process_pool_size: non_neg_integer(),
     page_pool_size: non_neg_integer(),
     process_pools: [{pid(), [pid()], [pid()]}],
-    chrome_options: [],
     checkout_queue: :queue.queue()
   }
 
@@ -47,12 +44,12 @@ defmodule Chromesmith do
   Check out a Page from one of the headless chrome processes.
   """
   @spec checkout(pid(), boolean()) :: {:ok, pid()} | {:error, :none_available} | {:error, :timeout}
-  def checkout(pid, should_block \\ true)
-  def checkout(pid, true) do
-    GenServer.call(pid, {:checkout, true}, :infinity)
-  end
+  def checkout(pid, should_block \\ false)
   def checkout(pid, false) do
     GenServer.call(pid, {:checkout, false})
+  end
+  def checkout(pid, true) do
+    GenServer.call(pid, {:checkout, true}, :infinity)
   end
 
   @doc """
@@ -84,8 +81,7 @@ defmodule Chromesmith do
     state = %Chromesmith{
       supervisor: supervisor_pid,
       process_pool_size: Keyword.get(opts, :process_pool_size, 4),
-      page_pool_size: Keyword.get(opts, :page_pool_size, 16),
-      chrome_options: Keyword.get(opts, :chrome_options, [])
+      page_pool_size: Keyword.get(opts, :page_pool_size, 16)
     }
 
     init(state)
@@ -111,7 +107,7 @@ defmodule Chromesmith do
       %{
         id: index,
         start: {Chromesmith.Worker, :start_link, [
-          {index, state.chrome_options}
+          index
         ]},
         restart: :temporary,
         shutdown: 5000,
