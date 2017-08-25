@@ -10,6 +10,7 @@ defmodule Chromesmith do
     page_pool_size: 0, # How many Pages per Instance
     process_pools: [], # List of process pool tuples, {pid, available_pids, all_pids}
     chrome_options: [], # Options to pass into `:chrome_launcher`
+    checkout_queue: :queue.new()
   ]
 
   @type t :: %__MODULE__{
@@ -17,14 +18,20 @@ defmodule Chromesmith do
     process_pool_size: non_neg_integer(),
     page_pool_size: non_neg_integer(),
     process_pools: [{pid(), [pid()], [pid()]}],
-    chrome_options: []
+    chrome_options: [],
+    checkout_queue: :queue.queue()
   }
 
   @doc """
   Check out a Page from one of the headless chrome processes.
   """
-  def checkout(pid) do
-    GenServer.call(pid, :checkout)
+  @spec checkout(pid(), boolean()) :: {:ok, pid()} | {:error, :none_available} | {:error, :timeout}
+  def checkout(pid, should_block \\ true)
+  def checkout(pid, true) do
+    GenServer.call(pid, {:checkout, true}, :infinity)
+  end
+  def checkout(pid, false) do
+    GenServer.call(pid, {:checkout, false})
   end
 
   @doc """
@@ -102,7 +109,7 @@ defmodule Chromesmith do
   # GenServer Handlers
   # ----
 
-  def handle_call(:checkout, _from, state) do
+  def handle_call({:checkout, should_block}, from, state) do
     {updated_pools, page} =
       state.process_pools
       |> Enum.reduce({[], nil}, fn({pid, available_pages, total_pages} = pool, {pools, found_page}) ->
@@ -115,28 +122,42 @@ defmodule Chromesmith do
         end
       end)
 
+    # If page available, return with page
+    # Else, we will enqueue the request.
     if page do
       {:reply, {:ok, page}, %{state | process_pools: updated_pools}}
     else
-      {:reply, :error, state}
+      if should_block do
+        {:noreply, %{state | checkout_queue: :queue.in(from, state.checkout_queue)}}
+      else
+        {:reply, {:error, :none_available}, state}
+      end
     end
   end
 
   def handle_cast({:checkin, page}, state) do
-    updated_pools =
-      state.process_pools
-      |> Enum.map(fn({pid, available_pages, total_pages} = pool) ->
-        # If this page is from this pool, (part of total pages)
-        # then return it as an available page only if it hasn't
-        # been added before (not already checked into available_pages
+    # If there's a checkout process waiting, immediate give page to queued process.
 
-        if Enum.find(total_pages, &(&1 == page)) && !Enum.find(available_pages, &(&1 == page)) do
-          {pid, [page | available_pages], total_pages}
-        else
-          pool
-        end
-      end)
+    case :queue.out(state.checkout_queue) do
+      {{:value, ref}, new_queue} ->
+        GenServer.reply(ref, {:ok, page})
+        {:noreply, %{state | checkout_queue: new_queue}}
+      {:empty, _} ->
+        updated_pools =
+          state.process_pools
+          |> Enum.map(fn({pid, available_pages, total_pages} = pool) ->
+            # If this page is from this pool, (part of total pages)
+            # then return it as an available page only if it hasn't
+            # been added before (not already checked into available_pages
 
-    {:noreply, %{state | process_pools: updated_pools}}
+            if Enum.find(total_pages, &(&1 == page)) && !Enum.find(available_pages, &(&1 == page)) do
+              {pid, [page | available_pages], total_pages}
+            else
+              pool
+            end
+          end)
+
+        {:noreply, %{state | process_pools: updated_pools}}
+    end
   end
 end
