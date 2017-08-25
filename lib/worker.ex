@@ -26,13 +26,23 @@ defmodule Chromesmith.Worker do
       port: state.opts[:remote_debugging_port]
     ])
 
-    page_sessions =
-      Enum.map(1..opts[:page_pool_size] - 1, fn(_) ->
-        {:ok, page} = Session.new_page(session)
-        {:ok, page_session} = PageSession.start_link(page)
-        page_session
-      end)
+    # Headless Chrome will start with an initial page, so we will
+    # need to retrieve it in order to connect to it.
+    {:ok, [initial_page]} = Session.list_pages(session)
+    {:ok, initial_page_session} = PageSession.start_link(initial_page)
+    page_sessions = spawn_pages(session, opts[:page_pool_size])
+    all_page_sessions = [initial_page_session | page_sessions]
 
-    {:reply, page_sessions, %{state | page_sessions: page_sessions}}
+    {:reply, all_page_sessions, %{state | page_sessions: all_page_sessions}}
+  end
+
+  def spawn_pages(session, number_of_pages)
+  def spawn_pages(_session, 1), do: []
+  def spawn_pages(session, number_of_pages) do
+    Enum.map(1..number_of_pages - 1, fn(_) ->
+      {:ok, page} = Session.new_page(session)
+      {:ok, page_session} = PageSession.start_link(page)
+      page_session
+    end)
   end
 end

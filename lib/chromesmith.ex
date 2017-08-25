@@ -64,11 +64,11 @@ defmodule Chromesmith do
   end
 
   def init(%Chromesmith{} = state) do
-    process_pools = prepopulate_pool(state.supervisor, state)
+    process_pools = spawn_pools(state.supervisor, state)
     {:ok, %{state | process_pools: process_pools}}
   end
 
-  def prepopulate_pool(supervisor, state) do
+  def spawn_pools(supervisor, state) do
     children =
       Enum.map(1..state.process_pool_size, fn(index) ->
         start_worker(supervisor, index, state)
