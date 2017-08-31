@@ -21,8 +21,8 @@ defmodule Chromesmith.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:chrome_launcher, git: "https://github.com/andrewvy/chrome-launcher.git"},
-      {:chrome_remote_interface, git: "https://github.com/andrewvy/chrome-remote-interface.git"}
+      {:chrome_launcher, "~> 0.0.1"},
+      {:chrome_remote_interface, "~> 0.0.2"}
     ]
   end
 end
