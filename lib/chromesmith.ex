@@ -113,7 +113,7 @@ defmodule Chromesmith do
           index,
           state.chrome_options
         ]},
-        restart: :temporary,
+        restart: :permanent,
         shutdown: 5000,
         type: :worker
       }
