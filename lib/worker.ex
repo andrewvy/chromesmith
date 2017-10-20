@@ -3,13 +3,28 @@ defmodule Chromesmith.Worker do
 
   alias ChromeRemoteInterface.{Session, PageSession}
 
-  def start_link(index) do
-    GenServer.start_link(__MODULE__, index)
+  def start_link(index, chrome_options) do
+    GenServer.start_link(__MODULE__, {index, chrome_options})
   end
 
-  def init(index) do
+  def init({index, chrome_options}) do
+    default_opts = ChromeLauncher.default_opts()
+    default_flags =
+      default_opts
+      |> Keyword.get(:flags)
+      |> MapSet.new()
+
+    flags =
+      chrome_options
+      |> MapSet.new()
+
+    merged_flags =
+      MapSet.union(default_flags, flags)
+      |> MapSet.to_list()
+
     opts = [
       remote_debugging_port: 9222 + index,
+      flags: merged_flags
     ]
 
     {:ok, pid} = ChromeLauncher.launch(opts)

@@ -29,6 +29,7 @@ defmodule Chromesmith do
     process_pool_size: 0, # How many Headless Chrome instances to spawn
     page_pool_size: 0, # How many Pages per Instance
     process_pools: [], # List of process pool tuples, {pid, available_pids, all_pids}
+    chrome_options: [],
     checkout_queue: :queue.new()
   ]
 
@@ -37,6 +38,7 @@ defmodule Chromesmith do
     process_pool_size: non_neg_integer(),
     page_pool_size: non_neg_integer(),
     process_pools: [{pid(), [pid()], [pid()]}],
+    chrome_options: list(),
     checkout_queue: :queue.queue()
   }
 
@@ -81,7 +83,8 @@ defmodule Chromesmith do
     state = %Chromesmith{
       supervisor: supervisor_pid,
       process_pool_size: Keyword.get(opts, :process_pool_size, 4),
-      page_pool_size: Keyword.get(opts, :page_pool_size, 16)
+      page_pool_size: Keyword.get(opts, :page_pool_size, 16),
+      chrome_options: Keyword.get(opts, :chrome_options, [])
     }
 
     init(state)
@@ -107,7 +110,8 @@ defmodule Chromesmith do
       %{
         id: index,
         start: {Chromesmith.Worker, :start_link, [
-          index
+          index,
+          state.chrome_options
         ]},
         restart: :temporary,
         shutdown: 5000,
